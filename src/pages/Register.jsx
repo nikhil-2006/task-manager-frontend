@@ -37,8 +37,14 @@ const Register = () => {
 
       navigate("/");
     } catch (err) {
-      setError("Registration failed");
+      if (err.response && err.response.data) {
+        console.log("Register Error:", err.response.data);
+        setError(JSON.stringify(err.response.data));
+      } else {
+        setError("Registration failed");
+      }
     }
+
   };
 
   return (
