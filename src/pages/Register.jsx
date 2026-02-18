@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { useNavigate, Link } from "react-router-dom";
 
 const Register = () => {
@@ -24,9 +24,14 @@ const Register = () => {
     e.preventDefault();
     setError("");
 
+    if (formData.password !== formData.password2) {
+      setError("Passwords do not match");
+      return;
+    }
+
     try {
-      await axios.post(
-        "http://127.0.0.1:8000/api/auth/register/",
+      await api.post(
+        "/api/auth/register/",
         formData
       );
 

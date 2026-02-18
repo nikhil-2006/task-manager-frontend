@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
@@ -8,7 +8,6 @@ const Dashboard = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
 
   const profileRef = useRef(null);
   const taskRef = useRef(null);
@@ -22,20 +21,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("access_token");
 
-  // ---------------- FETCH DATA ----------------
-  const fetchProfile = async () => {
-    try {
-      const response = await axios.get(
-        "http://127.0.0.1:8000/api/auth/profile/",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setProfile(response.data);
-    } catch {
-      navigate("/");
-    }
-  };
-
-
+  // ================= FETCH DATA =================
   useEffect(() => {
     if (!token) {
       navigate("/");
@@ -44,19 +30,17 @@ const Dashboard = () => {
 
     const fetchData = async () => {
       try {
-        const profileRes = await axios.get(
-          "http://127.0.0.1:8000/api/auth/profile/",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const headers = {
+          headers: { Authorization: `Bearer ${token}` },
+        };
 
-        const taskRes = await axios.get(
-          "http://127.0.0.1:8000/api/tasks/",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const [profileRes, taskRes] = await Promise.all([
+          api.get("/api/auth/profile/", headers),
+          api.get("/api/tasks/", headers),
+        ]);
 
         setProfile(profileRes.data);
         setTasks(taskRes.data);
-
       } catch (error) {
         console.error(error);
         navigate("/");
@@ -64,46 +48,40 @@ const Dashboard = () => {
     };
 
     fetchData();
-
   }, [token, navigate]);
 
-
+  // ================= REFRESH TASKS =================
   const fetchTasks = async () => {
     try {
-      const response = await axios.get(
-        "http://127.0.0.1:8000/api/tasks/",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.get("/api/tasks/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setTasks(response.data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  // ---------------- SCROLL ----------------
+  // ================= SCROLL =================
   const scrollToSection = (ref) => {
     ref.current?.scrollIntoView({ behavior: "smooth" });
     setSidebarOpen(false);
   };
 
-  // ---------------- CREATE / UPDATE ----------------
+  // ================= CREATE / UPDATE =================
   const handleSubmitTask = async (e) => {
     e.preventDefault();
 
     try {
       if (editingTask) {
-        await axios.put(
-          `http://127.0.0.1:8000/api/tasks/${editingTask.id}/`,
-          newTask,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/tasks/${editingTask.id}/`, newTask, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setEditingTask(null);
       } else {
-        await axios.post(
-          "http://127.0.0.1:8000/api/tasks/",
-          newTask,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post("/api/tasks/", newTask, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
       }
 
       setNewTask({ title: "", description: "", status: "pending" });
@@ -113,20 +91,19 @@ const Dashboard = () => {
     }
   };
 
-  // ---------------- DELETE ----------------
+  // ================= DELETE =================
   const handleDelete = async (id) => {
     try {
-      await axios.delete(
-        `http://127.0.0.1:8000/api/tasks/${id}/`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/api/tasks/${id}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       fetchTasks();
     } catch (error) {
       console.error(error);
     }
   };
 
-  // ---------------- LOGOUT ----------------
+  // ================= LOGOUT =================
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
@@ -136,7 +113,7 @@ const Dashboard = () => {
   return (
     <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh" }}>
 
-      {/* OVERLAY (Mobile Only) */}
+      {/* Overlay */}
       {sidebarOpen && (
         <div
           className="sidebar-overlay d-md-none"
@@ -144,10 +121,8 @@ const Dashboard = () => {
         />
       )}
 
-      {/* SIDEBAR */}
-      <div
-        className={`sidebar ${sidebarOpen ? "open" : ""}`}
-      >
+      {/* Sidebar */}
+      <div className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div>
           <h5 className="fw-bold mb-4">Task Manager</h5>
 
@@ -167,7 +142,7 @@ const Dashboard = () => {
             <li>
               <button
                 className="btn btn-link text-dark text-start p-0"
-                onClick={() => scrollToSection(fetchProfile)}
+                onClick={() => scrollToSection(profileRef)}
               >
                 Profile
               </button>
@@ -176,7 +151,7 @@ const Dashboard = () => {
             <li>
               <button
                 className="btn btn-link text-dark text-start p-0"
-                onClick={() => scrollToSection(fetchTasks)}
+                onClick={() => scrollToSection(taskRef)}
               >
                 Tasks
               </button>
@@ -192,10 +167,9 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* Main Content */}
       <div className="content-wrapper">
 
-        {/* Mobile Toggle */}
         <button
           className="btn btn-sm btn-outline-dark d-md-none mb-3"
           onClick={() => setSidebarOpen(prev => !prev)}
@@ -203,7 +177,6 @@ const Dashboard = () => {
           ☰ Menu
         </button>
 
-        {/* HEADER */}
         <div className="mb-4">
           <h2 className="fw-bold mb-1">Dashboard</h2>
           <p className="text-muted mb-0">
@@ -211,7 +184,7 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* PROFILE */}
+        {/* Profile */}
         {profile && (
           <div ref={profileRef} className="card border-0 shadow-sm rounded-4 mb-4">
             <div className="card-body">
@@ -224,7 +197,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* TASK FORM */}
+        {/* Task Form */}
         <div className="card border-0 shadow-sm rounded-4 mb-4">
           <div className="card-body">
             <h6 className="fw-semibold mb-3">
@@ -272,7 +245,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* TASK LIST */}
+        {/* Task List */}
         <div ref={taskRef} className="card border-0 shadow-sm rounded-4">
           <div className="card-body">
 
@@ -313,10 +286,11 @@ const Dashboard = () => {
                             </p>
 
                             <span
-                              className={`badge ${task.status === "completed"
-                                ? "bg-success"
-                                : "bg-secondary"
-                                }`}
+                              className={`badge ${
+                                task.status === "completed"
+                                  ? "bg-success"
+                                  : "bg-secondary"
+                              }`}
                             >
                               {task.status}
                             </span>
