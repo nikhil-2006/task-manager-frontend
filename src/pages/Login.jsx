@@ -4,9 +4,10 @@ import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: ""
   });
+
 
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const Login = () => {
 
     try {
       const response = await api.post(
-        "/api/auth/login/",
+        "/api/token/",
         formData
       );
 
