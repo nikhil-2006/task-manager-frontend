@@ -36,6 +36,11 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    fetchProfile();
+  }, []);
+
+
+  useEffect(() => {
     if (!token) {
       navigate("/");
       return;
@@ -313,8 +318,8 @@ const Dashboard = () => {
 
                             <span
                               className={`badge ${task.status === "completed"
-                                  ? "bg-success"
-                                  : "bg-secondary"
+                                ? "bg-success"
+                                : "bg-secondary"
                                 }`}
                             >
                               {task.status}
