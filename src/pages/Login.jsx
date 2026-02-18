@@ -48,15 +48,16 @@ const Login = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label>Email</label>
+              <label>Username</label>
               <input
-                type="email"
+                type="text"
                 className="form-control"
-                name="email"
-                value={formData.email}
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
                 required
               />
+
             </div>
 
             <div className="mb-3">
