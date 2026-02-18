@@ -10,6 +10,8 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
 
+  const profileRef = useRef(null);
+  const taskRef = useRef(null);
 
   const [newTask, setNewTask] = useState({
     title: "",
@@ -32,10 +34,6 @@ const Dashboard = () => {
       navigate("/");
     }
   };
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
 
 
   useEffect(() => {
