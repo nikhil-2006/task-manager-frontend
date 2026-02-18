@@ -10,8 +10,6 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
 
-  const profileRef = useRef(null);
-  const taskRef = useRef(null);
 
   const [newTask, setNewTask] = useState({
     title: "",
@@ -171,7 +169,7 @@ const Dashboard = () => {
             <li>
               <button
                 className="btn btn-link text-dark text-start p-0"
-                onClick={() => scrollToSection(profileRef)}
+                onClick={() => scrollToSection(fetchProfile)}
               >
                 Profile
               </button>
@@ -180,7 +178,7 @@ const Dashboard = () => {
             <li>
               <button
                 className="btn btn-link text-dark text-start p-0"
-                onClick={() => scrollToSection(taskRef)}
+                onClick={() => scrollToSection(fetchTasks)}
               >
                 Tasks
               </button>
